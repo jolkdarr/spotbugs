@@ -1,15 +1,31 @@
-plugins {
-  id "com.github.spotbugs" version "1.4"
-}
-
 apply from: "$rootDir/gradle/checkstyle.gradle"
 apply from: "$rootDir/gradle/javadoc.gradle"
 apply from: "$rootDir/gradle/maven.gradle"
 
+// to test with JUnit 5
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
+  }
+}
+apply plugin: 'org.junit.platform.gradle.plugin'
+
 dependencies {
-  compileOnly 'junit:junit:4.12'
   compileOnly project(':spotbugs')
+  compileOnly 'org.junit.jupiter:junit-jupiter-api:5.0.0'
   compile project(':test-harness-core')
+  testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.0'
+  testCompile project(':spotbugs')
+  testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0'
+}
+
+javadoc {
+  options.with {
+    tags = ['Test']
+  }
 }
 
 task javadocJar(type: Jar) {
@@ -30,8 +46,8 @@ uploadArchives {
   repositories {
     mavenDeployer {
       pom.project {
-        name 'JUnit 4 Test Harness for SpotBugs Plugin'
-        description 'A test harness library for SpotBugs plugin developers to test on JUnit4'
+        name 'JUnit 5 Test Harness for SpotBugs Plugin'
+        description 'A test harness library for SpotBugs plugin developers to test on JUnit 5'
       }
     }
   }
@@ -39,11 +55,5 @@ uploadArchives {
 
 // Module name should be reverse-DNS (com.github.spotbugs) just like package name
 // http://blog.joda.org/2017/04/java-se-9-jpms-module-naming.html
-ext.moduleName = 'com.github.spotbugs.test'
+ext.moduleName = 'com.github.spotbugs.test.jupiter'
 apply from: "$rootDir/gradle/jigsaw.gradle"
-
-spotbugs {
-  effort = "max"
-  reportLevel = "high"
-  toolVersion '3.1.0-RC6'
-}
